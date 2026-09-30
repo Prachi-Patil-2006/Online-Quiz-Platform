@@ -1,0 +1,6 @@
+{
+  "name": "Online Quiz Management and Assessment System",
+  "description": "Full-stack online quiz management and assessment platform with authentication, interactive timed quizzes, automated scoring, creator dashboard, and complete Django project codebase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

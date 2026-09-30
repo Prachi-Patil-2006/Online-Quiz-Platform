@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }} - Quiz in Progress{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Quiz Header Bar with Timer & Progress -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-3 p-md-4 sticky-top" style="top: 70px; z-index: 1000;">
+        <div class="row align-items-center gy-2">
+            <div class="col-md-5">
+                <span class="badge bg-primary-subtle text-primary mb-1">{{ quiz.category.name }}</span>
+                <h5 class="fw-bold mb-0 text-truncate">{{ quiz.title }}</h5>
+            </div>
+            <div class="col-md-4 text-center">
+                <!-- Countdown Timer -->
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-2 bg-light border rounded-pill shadow-sm" id="timerBadge">
+                    <i class="fa-solid fa-stopwatch text-danger"></i>
+                    <span class="small text-muted">Time Remaining:</span>
+                    <span class="fw-mono fw-bold fs-5 text-danger" id="countdownTimer">--:--</span>
+                </div>
+            </div>
+            <div class="col-md-3 text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm" id="earlySubmitBtn" onclick="confirmSubmitModal()">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Submit Quiz
+                </button>
+            </div>
+        </div>
+
+        <!-- Overall Progress Bar -->
+        <div class="mt-3">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Progress: <strong id="progressText">Question 1 of {{ questions.count }}</strong></span>
+                <span>Answered: <strong id="answeredCount">0</strong> / {{ questions.count }}</span>
+            </div>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="progressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Quiz Area: Question Card & Question Palette -->
+    <form id="quizForm" method="POST" action="{% url 'attempts:submit_quiz' quiz_id=quiz.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="time_taken" id="timeTakenInput" value="0">
+
+        <div class="row g-4">
+            <!-- Left Side: Interactive Question View -->
+            <div class="col-lg-8">
+                {% for q in questions %}
+                <div class="question-container card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4" 
+                     id="question-card-{{ forloop.counter0 }}" 
+                     data-index="{{ forloop.counter0 }}" 
+                     data-id="{{ q.id }}"
+                     style="{% if not forloop.first %}display: none;{% endif %}">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-secondary rounded-pill px-3 py-1">
+                            Question {{ forloop.counter }} of {{ questions.count }}
+                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-info-subtle text-info">{{ q.question_type }}</span>
+                            <span class="badge bg-primary-subtle text-primary">+{{ q.marks }} Mark{% if q.marks > 1 %}s{% endif %}</span>
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold mb-4 text-dark lh-base">{{ q.question_text }}</h4>
+
+                    <!-- Choices Selection -->
+                    <div class="choices-list d-flex flex-column gap-3 mb-4">
+                        {% for choice in q.choices.all %}
+                        <label class="choice-option d-flex align-items-center p-3 border rounded-3 cursor-pointer transition-all" 
+                               for="choice-{{ choice.id }}" 
+                               id="label-choice-{{ choice.id }}">
+                            <input class="form-check-input me-3 flex-shrink-0" 
+                                   type="radio" 
+                                   name="question_{{ q.id }}" 
+                                   id="choice-{{ choice.id }}" 
+                                   value="{{ choice.id }}" 
+                                   onchange="onSelectAnswer({{ forloop.parentloop.counter0 }}, {{ choice.id }})">
+                            <span class="choice-text fw-medium text-dark">{{ choice.choice_text }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Navigation Action Buttons -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                        <button type="button" class="btn btn-outline-secondary" onclick="prevQuestion()" {% if forloop.first %}disabled{% endif %} id="prevBtn-{{ forloop.counter0 }}">
+                            <i class="fa-solid fa-chevron-left me-1"></i> Previous
+                        </button>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-warning btn-sm" onclick="clearCurrentSelection({{ forloop.counter0 }}, {{ q.id }})">
+                                <i class="fa-solid fa-eraser me-1"></i> Clear Selection
+                            </button>
+                            {% if forloop.last %}
+                            <button type="button" class="btn btn-success px-4 fw-bold" onclick="confirmSubmitModal()">
+                                Review & Submit <i class="fa-solid fa-circle-check ms-1"></i>
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-primary px-4 fw-bold" onclick="nextQuestion()">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Right Side: Question Navigation Palette -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 210px;">
+                    <h6 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-table-cells text-primary me-2"></i> Question Palette</span>
+                        <span class="badge bg-light text-muted border">{{ questions.count }} Total</span>
+                    </h6>
+
+                    <!-- Grid of Question Numbers -->
+                    <div class="d-flex flex-wrap gap-2 mb-4" id="paletteGrid">
+                        {% for q in questions %}
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-secondary palette-btn rounded-circle fw-bold {% if forloop.first %}active border-primary text-primary{% endif %}" 
+                                style="width: 42px; height: 42px;" 
+                                id="palette-btn-{{ forloop.counter0 }}" 
+                                onclick="jumpToQuestion({{ forloop.counter0 }})">
+                            {{ forloop.counter }}
+                        </button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="palette-legend small text-muted border-top pt-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-success rounded-circle p-1" style="width: 14px; height: 14px;"> </span>
+                            <span>Answered</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-outline-primary border border-primary text-primary rounded-circle p-1" style="width: 14px; height: 14px;"> </span>
+                            <span>Current Question</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary-subtle border rounded-circle p-1" style="width: 14px; height: 14px;"> </span>
+                            <span>Unanswered</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-danger w-100 fw-bold py-2 shadow-sm" onclick="confirmSubmitModal()">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Finish & Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Submit Confirmation Modal -->
+<div class="modal fade" id="submitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Ready to Submit Quiz?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="bg-primary-subtle text-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 26px;">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <p class="mb-3">Please review your submission summary before finalizing your test.</p>
+                
+                <div class="row g-2 text-center p-3 bg-light rounded-3 mb-3">
+                    <div class="col-6">
+                        <span class="d-block small text-muted">Answered</span>
+                        <strong class="fs-4 text-success" id="modalAnswered">0</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="d-block small text-muted">Unanswered</span>
+                        <strong class="fs-4 text-danger" id="modalUnanswered">{{ questions.count }}</strong>
+                    </div>
+                </div>
+                <small class="text-muted">Once submitted, answers cannot be modified.</small>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Resume Quiz</button>
+                <button type="button" class="btn btn-primary fw-bold px-4" onclick="executeFinalSubmit()">Confirm Submission</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Total duration in seconds from Django template
+    const TOTAL_QUESTIONS = {{ questions.count }};
+    let timeRemaining = {{ time_limit_seconds }};
+    let timeTaken = 0;
+    let currentQuestionIndex = 0;
+    const answeredMap = {}; // questionIndex -> choiceId
+
+    // Countdown Timer logic
+    const timerDisplay = document.getElementById('countdownTimer');
+    const timeTakenInput = document.getElementById('timeTakenInput');
+
+    function updateTimerUI() {
+        if (timeRemaining <= 0) {
+            timerDisplay.textContent = '00:00';
+            autoSubmitOnTimeout();
+            return;
+        }
+
+        const mins = Math.floor(timeRemaining / 60);
+        const secs = timeRemaining % 60;
+        timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        if (timeRemaining < 60) {
+            timerDisplay.classList.add('text-danger', 'fw-bolder');
+            document.getElementById('timerBadge').classList.add('border-danger', 'bg-danger-subtle');
+        }
+    }
+
+    const timerInterval = setInterval(() => {
+        if (timeRemaining > 0) {
+            timeRemaining--;
+            timeTaken++;
+            timeTakenInput.value = timeTaken;
+            updateTimerUI();
+        } else {
+            clearInterval(timerInterval);
+        }
+    }, 1000);
+
+    updateTimerUI();
+
+    function autoSubmitOnTimeout() {
+        clearInterval(timerInterval);
+        alert("Time is up! Your quiz answers are being automatically submitted.");
+        document.getElementById('quizForm').submit();
+    }
+
+    // Question Navigation Logic (Without page reloads)
+    function showQuestion(index) {
+        if (index < 0 || index >= TOTAL_QUESTIONS) return;
+
+        // Hide all cards
+        for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+            const card = document.getElementById(`question-card-${i}`);
+            if (card) card.style.display = (i === index) ? 'block' : 'none';
+
+            // Palette styling
+            const pBtn = document.getElementById(`palette-btn-${i}`);
+            if (pBtn) {
+                if (answeredMap[i] !== undefined) {
+                    pBtn.className = 'btn btn-sm palette-btn rounded-circle fw-bold btn-success text-white';
+                } else if (i === index) {
+                    pBtn.className = 'btn btn-sm palette-btn rounded-circle fw-bold btn-primary text-white';
+                } else {
+                    pBtn.className = 'btn btn-sm palette-btn rounded-circle fw-bold btn-outline-secondary';
+                }
+            }
+        }
+
+        currentQuestionIndex = index;
+        document.getElementById('progressText').textContent = `Question ${index + 1} of ${TOTAL_QUESTIONS}`;
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < TOTAL_QUESTIONS - 1) {
+            showQuestion(currentQuestionIndex + 1);
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            showQuestion(currentQuestionIndex - 1);
+        }
+    }
+
+    function jumpToQuestion(index) {
+        showQuestion(index);
+    }
+
+    // Answer Selection
+    function onSelectAnswer(qIndex, choiceId) {
+        answeredMap[qIndex] = choiceId;
+        updateProgress();
+        showQuestion(currentQuestionIndex); // re-renders palette badge
+    }
+
+    function clearCurrentSelection(qIndex, questionId) {
+        const radios = document.getElementsByName(`question_${questionId}`);
+        radios.forEach(r => r.checked = false);
+        delete answeredMap[qIndex];
+        updateProgress();
+        showQuestion(currentQuestionIndex);
+    }
+
+    function updateProgress() {
+        const answeredCount = Object.keys(answeredMap).length;
+        document.getElementById('answeredCount').textContent = answeredCount;
+        const percent = Math.round((answeredCount / TOTAL_QUESTIONS) * 100);
+        document.getElementById('progressBar').style.width = `${percent}%`;
+    }
+
+    // Submit Modal
+    function confirmSubmitModal() {
+        const answeredCount = Object.keys(answeredMap).length;
+        const unansweredCount = TOTAL_QUESTIONS - answeredCount;
+
+        document.getElementById('modalAnswered').textContent = answeredCount;
+        document.getElementById('modalUnanswered').textContent = unansweredCount;
+
+        const modal = new bootstrap.Modal(document.getElementById('submitModal'));
+        modal.show();
+    }
+
+    function executeFinalSubmit() {
+        clearInterval(timerInterval);
+        document.getElementById('quizForm').submit();
+    }
+</script>
+{% endblock %}

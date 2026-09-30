@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Online Quiz Management and Assessment System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 bg-gradient text-white" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+    <div class="container py-4">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-7">
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold text-uppercase mb-3">
+                    <i class="fa-solid fa-bolt me-1"></i> Interactive Online Assessment
+                </span>
+                <h1 class="display-4 fw-extrabold mb-3">Test Your Knowledge.<br><span class="text-warning">Improve Your Skills.</span></h1>
+                <p class="lead mb-4 text-light opacity-90">
+                    Create and attempt quizzes, track your performance, and improve your knowledge through interactive assessments with real-time feedback and detailed score analysis.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-warning btn-lg px-4 fw-bold shadow">
+                        <i class="fa-solid fa-compass me-2"></i> Explore Quizzes
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'quizzes:quiz_create' %}" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fa-solid fa-plus-circle me-2"></i> Create Quiz
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fa-solid fa-user-plus me-2"></i> Get Started Free
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-5 text-center">
+                <div class="card border-0 shadow-lg p-4 bg-white text-dark rounded-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-primary-subtle text-primary fw-bold">Live Stats</span>
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                    </div>
+                    <div class="row text-center g-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <h3 class="fw-bold text-primary mb-0">{{ total_quizzes }}</h3>
+                                <small class="text-muted">Active Quizzes</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <h3 class="fw-bold text-success mb-0">{{ total_questions }}</h3>
+                                <small class="text-muted">Questions</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3">
+                                <h3 class="fw-bold text-warning mb-0">{{ total_attempts }}</h3>
+                                <small class="text-muted">Quiz Attempts Recorded</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Feature Cards Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h6 class="text-primary text-uppercase fw-bold letter-spacing-1">Why Choose Our Platform</h6>
+            <h2 class="fw-bold">Engineered for Academic Excellence</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">
+                Designed to meet educational assessment standards with automated evaluation and comprehensive student insights.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                    <div class="icon-square bg-primary-subtle text-primary mx-auto mb-3">
+                        <i class="fa-solid fa-laptop-code fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Interactive Quizzes</h5>
+                    <p class="text-muted small">
+                        Smooth question-by-question navigation with responsive radio choices, review palette, and countdown timer.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                    <div class="icon-square bg-success-subtle text-success mx-auto mb-3">
+                        <i class="fa-solid fa-cubes fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Multiple Categories</h5>
+                    <p class="text-muted small">
+                        From Python & Web Development to SQL, Digital Electronics, and Aptitude for campus placement prep.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                    <div class="icon-square bg-warning-subtle text-warning mx-auto mb-3">
+                        <i class="fa-solid fa-gauge-high fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Difficulty Levels</h5>
+                    <p class="text-muted small">
+                        Choose between Easy, Medium, and Hard difficulty levels suited to your current learning stage.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                    <div class="icon-square bg-danger-subtle text-danger mx-auto mb-3">
+                        <i class="fa-solid fa-square-poll-vertical fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Instant Results</h5>
+                    <p class="text-muted small">
+                        Server-side score calculation with precise percentage breakdown, correct vs wrong indicators, and explanations.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                    <div class="icon-square bg-info-subtle text-info mx-auto mb-3">
+                        <i class="fa-solid fa-chart-line fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Performance Tracking</h5>
+                    <p class="text-muted small">
+                        Detailed student dashboard with average score, highest scores, total questions answered, and full historical log.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                    <div class="icon-square bg-purple-subtle text-purple mx-auto mb-3">
+                        <i class="fa-solid fa-chalkboard-user fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Instructor Controls</h5>
+                    <p class="text-muted small">
+                        Quiz creators can add, edit, reorder questions, select correct answers, and view learner attempt metrics.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Grid -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h6 class="text-primary text-uppercase fw-bold">Explore Domains</h6>
+                <h3 class="fw-bold mb-0">Browse by Category</h3>
+            </div>
+            <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary btn-sm">View All Categories &rarr;</a>
+        </div>
+
+        <div class="row g-3">
+            {% for cat in categories %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="{% url 'quizzes:quiz_list' %}?category={{ cat.slug }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm p-3 h-100 text-center hover-card">
+                        <div class="p-2 mb-2">
+                            <i class="{{ cat.icon }} fs-2 text-primary"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">{{ cat.name }}</h6>
+                        <small class="text-muted">{{ cat.quizzes.count }} Quizzes</small>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Quizzes -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">Featured Assessments</h3>
+                <p class="text-muted small mb-0">Popular tests to challenge your skills today.</p>
+            </div>
+            <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary btn-sm">See All Quizzes</a>
+        </div>
+
+        <div class="row g-4">
+            {% for quiz in featured_quizzes %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-primary-subtle text-primary">{{ quiz.category.name }}</span>
+                            <span class="badge {% if quiz.difficulty == 'Easy' %}bg-success-subtle text-success{% elif quiz.difficulty == 'Medium' %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %}">
+                                {{ quiz.difficulty }}
+                            </span>
+                        </div>
+                        <h5 class="fw-bold mb-2">{{ quiz.title }}</h5>
+                        <p class="text-muted small flex-grow-1">{{ quiz.description|truncatewords:15 }}</p>
+                        <div class="d-flex justify-content-between text-muted small border-top pt-3 mt-2">
+                            <span><i class="fa-solid fa-clock me-1 text-primary"></i> {{ quiz.time_limit }} mins</span>
+                            <span><i class="fa-solid fa-circle-question me-1 text-primary"></i> {{ quiz.questions_count }} Qs</span>
+                        </div>
+                        <a href="{% url 'quizzes:quiz_detail' pk=quiz.id %}" class="btn btn-outline-primary w-100 mt-3 fw-semibold">
+                            Start Assessment
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

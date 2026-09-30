@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Question - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+                <div class="p-4 bg-primary text-white">
+                    <h4 class="fw-bold mb-1">Add Question to Quiz</h4>
+                    <p class="small opacity-75 mb-0">{{ quiz.title }} &bull; {{ quiz.category.name }}</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Question Type</label>
+                                {{ q_form.question_type }}
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label class="form-label fw-semibold small">Marks</label>
+                                {{ q_form.marks }}
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label class="form-label fw-semibold small">Question Order</label>
+                                {{ q_form.order }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small">Question Text</label>
+                            {{ q_form.question_text }}
+                        </div>
+
+                        <!-- MCQ Choices Container -->
+                        <div id="mcqChoicesSection" class="p-3 bg-light rounded-3 mb-4 border">
+                            <h6 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+                                <span>Answer Choices (Select radio button for the correct answer)</span>
+                                <span class="badge bg-primary">4 Options Required</span>
+                            </h6>
+
+                            {% for idx in "0123" %}
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Option {{ forloop.counter }}</label>
+                                <div class="input-group">
+                                    <div class="input-group-text bg-white">
+                                        <input class="form-check-input mt-0" type="radio" name="mcq_correct" value="{{ forloop.counter0 }}" {% if forloop.first %}checked{% endif %} title="Mark as correct">
+                                        <span class="ms-1 small fw-bold">Correct</span>
+                                    </div>
+                                    <input type="text" name="choice_text" class="form-control" placeholder="Enter option text..." required>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- True/False Section -->
+                        <div id="tfChoicesSection" class="p-3 bg-light rounded-3 mb-4 border" style="display: none;">
+                            <h6 class="fw-bold mb-3">Select the Correct Truth Value</h6>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="tf_correct" id="tfTrue" value="True" checked>
+                                    <label class="form-check-label fw-bold text-success" for="tfTrue">True</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="tf_correct" id="tfFalse" value="False">
+                                    <label class="form-check-label fw-bold text-danger" for="tfFalse">False</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small">Explanation (Optional)</label>
+                            {{ q_form.explanation }}
+                            <small class="text-muted">Will be revealed to candidates during answer review.</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'quizzes:manage_questions' quiz_id=quiz.id %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary fw-bold px-4">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save Question
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const typeSelect = document.getElementById('id_question_type');
+    const mcqSection = document.getElementById('mcqChoicesSection');
+    const tfSection = document.getElementById('tfChoicesSection');
+
+    function toggleQuestionType() {
+        if (typeSelect.value === 'True/False') {
+            mcqSection.style.display = 'none';
+            tfSection.style.display = 'block';
+            mcqSection.querySelectorAll('input[type="text"]').forEach(input => input.required = false);
+        } else {
+            mcqSection.style.display = 'block';
+            tfSection.style.display = 'none';
+            mcqSection.querySelectorAll('input[type="text"]').forEach(input => input.required = true);
+        }
+    }
+
+    typeSelect.addEventListener('change', toggleQuestionType);
+    toggleQuestionType();
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Result - {{ attempt.quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Result Card -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4 bg-white">
+        <!-- Banner -->
+        <div class="p-4 p-md-5 text-center text-white {% if attempt.percentage >= 75 %}bg-success{% elif attempt.percentage >= 50 %}bg-primary{% else %}bg-danger{% endif %}">
+            <span class="badge bg-light text-dark px-3 py-1 rounded-pill fw-bold text-uppercase mb-2">Assessment Completed</span>
+            <h1 class="fw-bold mb-2">Quiz Completed!</h1>
+            <p class="lead mb-0 opacity-90">{{ attempt.quiz.title }} &bull; {{ attempt.quiz.category.name }}</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+            <!-- Score Overview Grid -->
+            <div class="row g-4 text-center align-items-center mb-5">
+                <div class="col-md-4">
+                    <div class="p-4 rounded-4 bg-light border">
+                        <span class="d-block small text-muted text-uppercase fw-bold mb-1">Total Score</span>
+                        <h2 class="display-5 fw-bold text-primary mb-0">{{ attempt.score }} / {{ attempt.total_marks }}</h2>
+                        <small class="text-muted">Marks Obtained</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-4 rounded-4 bg-light border">
+                        <span class="d-block small text-muted text-uppercase fw-bold mb-1">Percentage</span>
+                        <h2 class="display-5 fw-bold {% if attempt.percentage >= 75 %}text-success{% elif attempt.percentage >= 50 %}text-warning{% else %}text-danger{% endif %} mb-0">
+                            {{ attempt.percentage }}%
+                        </h2>
+                        <small class="text-muted">
+                            {% if attempt.percentage >= 80 %}Excellent! Distinction
+                            {% elif attempt.percentage >= 60 %}Good Job! Passed
+                            {% elif attempt.percentage >= 40 %}Average Performance
+                            {% else %}Needs Improvement{% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-4 rounded-4 bg-light border">
+                        <span class="d-block small text-muted text-uppercase fw-bold mb-1">Time Taken</span>
+                        <h2 class="display-5 fw-bold text-dark mb-0">{{ attempt.formatted_time_taken }}</h2>
+                        <small class="text-muted">Completed on {{ attempt.completed_at|date:"M d, Y, h:i A" }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Breakdown Pills -->
+            <div class="row g-3 text-center mb-5">
+                <div class="col-4">
+                    <div class="p-3 bg-success-subtle text-success rounded-3 border border-success-subtle">
+                        <i class="fa-solid fa-circle-check fs-4 mb-1"></i>
+                        <h4 class="fw-bold mb-0">{{ attempt.correct_answers }}</h4>
+                        <small class="fw-semibold">Correct Answers</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 bg-danger-subtle text-danger rounded-3 border border-danger-subtle">
+                        <i class="fa-solid fa-circle-xmark fs-4 mb-1"></i>
+                        <h4 class="fw-bold mb-0">{{ attempt.wrong_answers }}</h4>
+                        <small class="fw-semibold">Wrong Answers</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 bg-secondary-subtle text-secondary rounded-3 border border-secondary-subtle">
+                        <i class="fa-solid fa-circle-minus fs-4 mb-1"></i>
+                        <h4 class="fw-bold mb-0">{{ attempt.unanswered }}</h4>
+                        <small class="fw-semibold">Unanswered</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Navigation Buttons -->
+            <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
+                <a href="#detailedAnswers" class="btn btn-outline-primary px-4 fw-bold">
+                    <i class="fa-solid fa-eye me-2"></i> View Answers
+                </a>
+                <a href="{% url 'attempts:start_quiz' quiz_id=attempt.quiz.id %}" class="btn btn-warning px-4 fw-bold text-dark">
+                    <i class="fa-solid fa-rotate-right me-2"></i> Retake Quiz
+                </a>
+                <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-secondary px-4 fw-bold">
+                    <i class="fa-solid fa-compass me-2"></i> Try Another Quiz
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn btn-primary px-4 fw-bold">
+                    <i class="fa-solid fa-chart-line me-2"></i> Go to Dashboard
+                </a>
+            </div>
+
+            <!-- Detailed Question-by-Question Answers Section -->
+            <div id="detailedAnswers" class="border-top pt-5">
+                <h4 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-list-ol text-primary"></i> Detailed Question Review
+                </h4>
+
+                <div class="d-flex flex-column gap-4">
+                    {% for ans in user_answers %}
+                    <div class="card border {% if ans.is_correct %}border-success-subtle bg-success-subtle/10{% elif not ans.selected_choice %}border-secondary-subtle{% else %}border-danger-subtle{% endif %} rounded-4 p-4 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-secondary">Question {{ forloop.counter }}</span>
+                            <span class="badge {% if ans.is_correct %}bg-success{% elif not ans.selected_choice %}bg-secondary{% else %}bg-danger{% endif %} rounded-pill px-3 py-1">
+                                {% if ans.is_correct %}
+                                    <i class="fa-solid fa-check me-1"></i> Correct (+{{ ans.marks_obtained }} mark)
+                                {% elif not ans.selected_choice %}
+                                    <i class="fa-solid fa-minus me-1"></i> Not Attempted (0 marks)
+                                {% else %}
+                                    <i class="fa-solid fa-xmark me-1"></i> Incorrect (0 marks)
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <h5 class="fw-bold mb-3 text-dark">{{ ans.question.question_text }}</h5>
+
+                        <!-- Choices Display -->
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            {% for choice in ans.question.choices.all %}
+                            <div class="p-2 px-3 rounded-3 border d-flex justify-content-between align-items-center small
+                                 {% if choice.is_correct %}
+                                    bg-success-subtle border-success text-success fw-bold
+                                 {% elif choice == ans.selected_choice and not ans.is_correct %}
+                                    bg-danger-subtle border-danger text-danger fw-bold
+                                 {% else %}
+                                    bg-white text-muted
+                                 {% endif %}">
+                                <span>{{ choice.choice_text }}</span>
+                                <div>
+                                    {% if choice == ans.selected_choice %}
+                                        <span class="badge bg-dark me-1">Your Choice</span>
+                                    {% endif %}
+                                    {% if choice.is_correct %}
+                                        <span class="badge bg-success">Correct Answer</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if ans.question.explanation %}
+                        <div class="p-3 bg-light rounded-3 small text-muted border-start border-4 border-primary">
+                            <strong class="text-primary d-block mb-1"><i class="fa-solid fa-lightbulb me-1"></i> Explanation:</strong>
+                            {{ ans.question.explanation }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

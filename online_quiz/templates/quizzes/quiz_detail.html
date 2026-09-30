@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }} - Overview{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white mb-4">
+                <div class="p-4 p-md-5 bg-gradient text-white" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-light text-primary fw-bold px-3 py-1 rounded-pill">{{ quiz.category.name }}</span>
+                        <span class="badge {% if quiz.difficulty == 'Easy' %}bg-success{% elif quiz.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-danger{% endif %} px-3 py-1 rounded-pill">
+                            {{ quiz.difficulty }}
+                        </span>
+                    </div>
+                    <h2 class="fw-bold mb-2">{{ quiz.title }}</h2>
+                    <p class="lead opacity-90 mb-0">{{ quiz.description }}</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-info text-primary me-2"></i> Assessment Details</h5>
+                    
+                    <div class="row g-3 text-center mb-4">
+                        <div class="col-md-3 col-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="d-block small text-muted">Questions</span>
+                                <strong class="fs-4 text-dark">{{ quiz.questions_count }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="d-block small text-muted">Time Limit</span>
+                                <strong class="fs-4 text-dark">{{ quiz.time_limit }} mins</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="d-block small text-muted">Total Marks</span>
+                                <strong class="fs-4 text-dark">{{ quiz.total_marks }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="d-block small text-muted">Attempts</span>
+                                <strong class="fs-4 text-dark">{{ quiz.attempts.count }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-light rounded-3 mb-4 border">
+                        <h6 class="fw-bold mb-2"><i class="fa-solid fa-list-check text-success me-2"></i> Instructions Before You Begin:</h6>
+                        <ul class="small text-muted mb-0 ps-3">
+                            <li class="mb-1">The timer starts automatically upon clicking "Start Quiz Now".</li>
+                            <li class="mb-1">You can navigate freely between questions using the "Next", "Previous", or Question Palette.</li>
+                            <li class="mb-1">Once the countdown timer hits <code>00:00</code>, your answers will be automatically submitted.</li>
+                            <li>Scores, percentage, and detailed answers are generated instantly after submission.</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'attempts:start_quiz' quiz_id=quiz.id %}" class="btn btn-primary btn-lg flex-grow-1 fw-bold py-3 shadow">
+                            <i class="fa-solid fa-play me-2"></i> Start Quiz Now
+                        </a>
+                        {% if user == quiz.created_by or user.is_staff %}
+                        <a href="{% url 'quizzes:manage_questions' quiz_id=quiz.id %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fa-solid fa-gear me-1"></i> Edit Questions
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+/* Online Quiz Management and Assessment System - Styles */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1e293b;
+}
+
+.letter-spacing-1 {
+    letter-spacing: 0.05em;
+}
+
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15) !important;
+}
+
+.hover-card:hover {
+    background-color: #f8fafc;
+    border-color: #3b82f6 !important;
+    transform: translateY(-2px);
+}
+
+.icon-square {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.choice-option {
+    transition: all 0.15s ease-in-out;
+}
+
+.choice-option:hover {
+    background-color: #f1f5f9;
+    border-color: #3b82f6 !important;
+}
+
+.choice-option input[type="radio"]:checked + .choice-text {
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+.fw-mono {
+    font-family: 'JetBrains Mono', monospace;
+}

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Attempt History - Online Quiz Management and Assessment System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold mb-1"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Attempt History</h3>
+                <p class="text-muted small mb-0">Review all your previous quiz submissions, scores, and completion timestamps.</p>
+            </div>
+            <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus me-1"></i> Attempt New Quiz
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card-body p-0">
+            {% if attempts %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase small text-muted">
+                        <tr>
+                            <th class="ps-4">Quiz Title</th>
+                            <th>Category</th>
+                            <th>Difficulty</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Time Taken</th>
+                            <th>Date</th>
+                            <th class="text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attempts %}
+                        <tr>
+                            <td class="ps-4">
+                                <a href="{% url 'attempts:quiz_result' attempt_id=att.id %}" class="fw-bold text-dark text-decoration-none hover-primary">
+                                    {{ att.quiz.title }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ att.quiz.category.name }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {% if att.quiz.difficulty == 'Easy' %}bg-success-subtle text-success{% elif att.quiz.difficulty == 'Medium' %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %}">
+                                    {{ att.quiz.difficulty }}
+                                </span>
+                            </td>
+                            <td class="fw-semibold">
+                                {{ att.score }} / {{ att.total_marks }}
+                            </td>
+                            <td>
+                                <span class="badge {% if att.percentage >= 75 %}bg-success{% elif att.percentage >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %} px-2 py-1">
+                                    {{ att.percentage }}%
+                                </span>
+                            </td>
+                            <td class="text-muted small">
+                                {{ att.formatted_time_taken }}
+                            </td>
+                            <td class="text-muted small">
+                                {{ att.completed_at|date:"M d, Y" }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'attempts:quiz_result' attempt_id=att.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fa-solid fa-eye me-1"></i> View Result
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fa-solid fa-clock-rotate-left fs-1 text-muted mb-3"></i>
+                <h5 class="fw-bold">No Attempts Found</h5>
+                <p class="text-muted">You haven't attempted any quizzes yet.</p>
+                <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-primary btn-sm">Browse Quizzes</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
